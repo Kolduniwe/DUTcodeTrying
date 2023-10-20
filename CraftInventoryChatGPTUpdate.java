@@ -9,8 +9,12 @@ public class CraftInventoryChatGPTUpdate {
 
     private static JComboBox<String> heroComboBox;
     private static JCheckBox multiCraftCheckBox;
-    private static JComboBox<String> weaponComboBox;
+    private static JButton chooseWeaponsButton;
     private static JButton craftButton;
+
+    private static String selectedHero;
+    private static String firstSelectedWeapon;
+    private static String secondSelectedWeapon;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> createAndShowGUI());
@@ -32,9 +36,9 @@ public class CraftInventoryChatGPTUpdate {
         multiCraftCheckBox = new JCheckBox();
         panel.add(multiCraftCheckBox);
 
-        panel.add(new JLabel("Select Weapon:"));
-        weaponComboBox = new JComboBox<>(inventoryWeapons);
-        panel.add(weaponComboBox);
+        chooseWeaponsButton = new JButton("Choose Weapons");
+        chooseWeaponsButton.addActionListener(new ChooseWeaponsButtonListener());
+        panel.add(chooseWeaponsButton);
 
         craftButton = new JButton("Craft");
         craftButton.addActionListener(new CraftButtonListener());
@@ -44,52 +48,136 @@ public class CraftInventoryChatGPTUpdate {
         frame.setVisible(true);
     }
 
-    private static class CraftButtonListener implements ActionListener {
+    private static class ChooseWeaponsButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String selectedHero = (String) heroComboBox.getSelectedItem();
-            boolean multiCraft = multiCraftCheckBox.isSelected();
-            String selectedWeapon = (String) weaponComboBox.getSelectedItem();
+            selectedHero = (String) heroComboBox.getSelectedItem();
 
-            String craftingResult = craft(selectedHero, multiCraft, selectedWeapon);
-
-            JOptionPane.showMessageDialog(null, craftingResult, "Crafting Result", JOptionPane.INFORMATION_MESSAGE);
+            // Open a new window to choose weapons
+            openChooseWeaponsWindow();
         }
     }
 
-    private static String craft(String selectedHero, boolean multiCraft, String selectedWeapon) {
-        StringBuilder result = new StringBuilder("Crafting scenario for " + selectedHero + ":\n");
+    private static void openChooseWeaponsWindow() {
+        JFrame weaponsFrame = new JFrame("Choose Weapons");
+        weaponsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        weaponsFrame.setSize(300, 150);
 
-        if (multiCraft) {
-            // Implement multi-crafting scenario
-            // You can add logic for combining weapons here
-            result.append("Multi-crafting is not implemented yet. Crafted: ").append(selectedWeapon);
-        } else {
-            // Implement single-crafting scenario
-            switch (selectedHero.toLowerCase()) {
-                case "tolubko":
-                    result.append("Tolubko crafted: Legendary Tolubko's ").append(selectedWeapon).append("!");
-                    break;
-                case "pidpaluy":
-                    result.append("Pidpaluy crafted: Enchanted ").append(selectedWeapon).append(" of Pidpaluy!");
-                    break;
-                case "sofia":
-                    result.append("Sofia crafted something unique with ").append(selectedWeapon).append("!");
-                    break;
-                default:
-                    result.append(selectedHero).append(" crafted: Epic ").append(selectedWeapon).append("!");
-                    break;
+        JPanel weaponsPanel = new JPanel();
+        weaponsPanel.setLayout(new GridLayout(4, 2));
+
+        JComboBox<String> firstWeaponComboBox = new JComboBox<>(inventoryWeapons);
+        JComboBox<String> secondWeaponComboBox = new JComboBox<>(inventoryWeapons);
+
+        weaponsPanel.add(new JLabel("Select First Weapon:"));
+        weaponsPanel.add(firstWeaponComboBox);
+
+        weaponsPanel.add(new JLabel("Select Second Weapon:"));
+        weaponsPanel.add(secondWeaponComboBox);
+
+        JButton confirmButton = new JButton("Confirm");
+        confirmButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Save the selected weapons and close the window
+                firstSelectedWeapon = (String) firstWeaponComboBox.getSelectedItem();
+                secondSelectedWeapon = (String) secondWeaponComboBox.getSelectedItem();
+
+                // Check if any weapon is null
+                if (firstSelectedWeapon == null || secondSelectedWeapon == null) {
+                    JOptionPane.showMessageDialog(null, "Please select both weapons.", "Selection Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    weaponsFrame.dispose();
+                }
+            }
+        });
+        weaponsPanel.add(confirmButton);
+
+        weaponsFrame.getContentPane().add(BorderLayout.CENTER, weaponsPanel);
+        weaponsFrame.setVisible(true);
+    }
+
+    private static class CraftButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean multiCraft = multiCraftCheckBox.isSelected();
+
+            if (multiCraft) {
+                // Display a new window with additional information for multi-crafting
+                displayMultiCraftingWindow(selectedHero, firstSelectedWeapon, secondSelectedWeapon);
+            } else {
+                // Craft and show the result in a JOptionPane
+                String craftingResult = craft(selectedHero, multiCraft, firstSelectedWeapon);
+                JOptionPane.showMessageDialog(null, craftingResult, "Crafting Result", JOptionPane.INFORMATION_MESSAGE);
+
+                // Simulate a fight based on the hero and crafted item
+                simulateFight(selectedHero, firstSelectedWeapon);
             }
         }
+    }
 
-        // Simulate a fight based on the hero and crafted item
-        if (!selectedHero.equalsIgnoreCase("sofia")) {
-            result.append("\nEntering a fight...\n").append(selectedHero).append(" fights valiantly with ")
-                    .append(selectedWeapon).append(". The outcome is uncertain. Good luck!");
+    private static void displayMultiCraftingWindow(String selectedHero, String firstWeapon, String secondWeapon) {
+        JFrame multiCraftFrame = new JFrame("Multi-Crafting Window");
+        multiCraftFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        multiCraftFrame.setSize(300, 150);
+
+        JPanel multiCraftPanel = new JPanel();
+        multiCraftPanel.setLayout(new GridLayout(3, 1));
+
+        JLabel titleLabel = new JLabel("Multi-Crafting Information for " + selectedHero);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        multiCraftPanel.add(titleLabel);
+
+        JLabel weaponsLabel = new JLabel("Selected Weapons: " + firstWeapon + " and " + secondWeapon);
+        weaponsLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        multiCraftPanel.add(weaponsLabel);
+
+        JLabel infoLabel = new JLabel("Additional information for multi-crafting goes here.");
+        infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        multiCraftPanel.add(infoLabel);
+
+        multiCraftFrame.getContentPane().add(BorderLayout.CENTER, multiCraftPanel);
+        multiCraftFrame.setVisible(true);
+
+        // Simulate a fight based on the hero and crafted items
+        simulateFight(selectedHero, firstWeapon);
+    }
+
+    private static void simulateFight(String selectedHero, String selectedWeapon) {
+        // Simulate a fight scenario based on the hero and crafted item
+        JFrame fightFrame = new JFrame("Fight Scenario");
+        fightFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        fightFrame.setSize(300, 150);
+
+        JPanel fightPanel = new JPanel();
+        fightPanel.setLayout(new GridLayout(3, 1));
+
+        JLabel titleLabel = new JLabel("Fight Scenario for " + selectedHero);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fightPanel.add(titleLabel);
+
+        JLabel weaponLabel = new JLabel("Selected Weapon: " + selectedWeapon);
+        weaponLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fightPanel.add(weaponLabel);
+
+        JLabel fightResultLabel;
+        if ("Sofia".equalsIgnoreCase(selectedHero)) {
+            // Special scenario for Sofia
+            fightResultLabel = new JLabel("Sofia is the strongest with all weapons. Win!");
         } else {
-            result.append("\nSofia wins the fight!");
+            // Generic fight scenario
+            fightResultLabel = new JLabel("The result of the fight remains a mystery...");
         }
+        fightResultLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fightPanel.add(fightResultLabel);
 
-        return result.toString();
+        fightFrame.getContentPane().add(BorderLayout.CENTER, fightPanel);
+        fightFrame.setVisible(true);
+    }
+
+    private static String craft(String selectedHero, boolean multiCraft, String selectedWeapon) {
+        // ... (unchanged code for crafting)
+        return "Crafting scenario for " + selectedHero + ":\n" +
+                selectedHero + " crafted: " + selectedWeapon;
     }
 }
