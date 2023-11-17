@@ -5,6 +5,9 @@ public class CraftInventory {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
+        System.out.print("Enter your nickname: ");
+        String nickname = scanner.nextLine();
+
         String[] inventoryWeapons = {"DesertEagle", "Bat", "Katana"};
 
         System.out.println("Your Inventory:");
@@ -19,7 +22,7 @@ public class CraftInventory {
             System.out.println("Hero [" + i + "]: " + heroes[i]);
         }
 
-        System.out.print("\nEnter the indices of the inventory items you want to select (probel postav): ");
+        System.out.print("\nEnter the indices of the inventory items you want to select (separated by space): ");
         String input = scanner.nextLine();
         String[] selectedIndices = input.split("\\s+");
 
@@ -54,7 +57,8 @@ public class CraftInventory {
 
             if (!selectedHero.equalsIgnoreCase("tolubko") && anyItemSelected) {
                 System.out.println("You did not choose tolubko :(. Character's name: " + selectedHero);
-                System.out.println("your items " + Arrays.toString(selectedItems));
+                System.out.println("Your items " + Arrays.toString(selectedItems));
+                System.out.println("Your nickname: " + nickname);
             }
         } else {
             System.out.println("Invalid index. No hero selected.");
